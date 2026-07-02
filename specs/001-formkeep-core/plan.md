@@ -1,113 +1,91 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: formKeep Core — Form Tagging, Capture, Auto-Fill & Dataset Management
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `001-formkeep-core` | **Date**: 2026-07-02 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Input**: Feature specification from `/specs/001-formkeep-core/spec.md`
 
 ## Summary
 
-[Extract from feature spec: primary requirement + technical approach from research]
+formKeep is a personal Chrome extension (Manifest V3, vanilla JavaScript, zero dependencies, no build step) that detects forms on visited pages, assigns them stable deterministic IDs via structure fingerprinting, lets the user tag forms to track, captures submitted values into named local datasets (`chrome.storage.local`), and refills forms in one click on return. A popup UI manages forms and datasets (CRUD, active-dataset selection) and provides full JSON export/import. A minimal background service worker updates the toolbar badge when saved data is available for the current page.
 
 ## Technical Context
 
-<!--
-  ACTION REQUIRED: Replace the content in this section with the technical details
-  for the project. The structure here is presented in advisory capacity to guide
-  the iteration process.
--->
+**Language/Version**: JavaScript ES2022+ (vanilla, no TypeScript, no transpilation)
 
-**Language/Version**: [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION]
+**Primary Dependencies**: None — plain browser + Chrome extension APIs only (Constitution I: no frameworks, no build toolchain)
 
-**Primary Dependencies**: [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
+**Storage**: `chrome.storage.local` exclusively (Constitution IV); per-form keys + meta key, format-versioned
 
-**Storage**: [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
+**Testing**: Manual validation via local HTML fixture pages (`tests/fixtures/`) and the quickstart scenario guide — no automated test suite (explicit user decision)
 
-**Testing**: [e.g., pytest, XCTest, cargo test or NEEDS CLARIFICATION]
+**Target Platform**: Google Chrome desktop (stable channel), Manifest V3, loaded unpacked ("usage personnel", no Web Store publication required)
 
-**Target Platform**: [e.g., Linux server, iOS 15+, WASM or NEEDS CLARIFICATION]
+**Project Type**: Browser extension — content script + popup UI + minimal background service worker
 
-**Project Type**: [e.g., library/cli/web-service/mobile-app/compiler/desktop-app or NEEDS CLARIFICATION]
+**Performance Goals**: Form detection < 500ms on pages with 20+ forms; fill operation perceived as instant; zero user-perceptible page slowdown (SC-003, SC-004)
 
-**Performance Goals**: [domain-specific, e.g., 1000 req/s, 10k lines/sec, 60 fps or NEEDS CLARIFICATION]
+**Constraints**: Offline-first, strictly local data, no network calls of any kind, no data leaves the browser (Constitution IV); fill is always user-initiated (Constitution II)
 
-**Constraints**: [domain-specific, e.g., <200ms p95, <100MB memory, offline-capable or NEEDS CLARIFICATION]
-
-**Scale/Scope**: [domain-specific, e.g., 10k users, 1M LOC, 50 screens or NEEDS CLARIFICATION]
+**Scale/Scope**: Single user; order of dozens of tracked forms, hundreds of datasets; well under the 10 MB `chrome.storage.local` quota — `unlimitedStorage` permission not needed
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-[Gates determined based on constitution file]
+| Principle | Gate | Status |
+|-----------|------|--------|
+| I. Simplicity & Lightweight | Vanilla JS, no build step, no dependencies, 3 small runtime surfaces (content/popup/worker) | ✅ PASS |
+| II. Explicit Consent (NON-NEGOTIABLE) | Fill only on user click (spec FR-007); capture only for user-tagged forms and only on the user's own submit action; badge signals, never injects | ✅ PASS |
+| III. Data Portability (NON-NEGOTIABLE) | Export/import of full `ExportBundle` JSON from popup, format-versioned (FR-011/FR-012) | ✅ PASS |
+| IV. Local Storage & Privacy | `chrome.storage.local` only; no host network permissions requested; no telemetry | ✅ PASS |
+| V. Dynamic Form Compatibility | MutationObserver-based detection; fingerprint IDs survive reloads and minor DOM mutations (FR-001/FR-002) | ✅ PASS |
+
+**Post-Phase-1 re-evaluation**: design artifacts introduce no additional projects, dependencies, or storage surfaces — all gates still ✅ PASS. Complexity Tracking remains empty.
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
-├── plan.md              # This file (/speckit-plan command output)
-├── research.md          # Phase 0 output (/speckit-plan command)
-├── data-model.md        # Phase 1 output (/speckit-plan command)
-├── quickstart.md        # Phase 1 output (/speckit-plan command)
-├── contracts/           # Phase 1 output (/speckit-plan command)
-└── tasks.md             # Phase 2 output (/speckit-tasks command - NOT created by /speckit-plan)
+specs/001-formkeep-core/
+├── plan.md              # This file
+├── research.md          # Phase 0 output
+├── data-model.md        # Phase 1 output
+├── quickstart.md        # Phase 1 output — validation guide
+├── contracts/
+│   ├── messages.md      # Runtime message protocol (popup ↔ content ↔ worker)
+│   └── export-format.md # ExportBundle JSON contract
+└── tasks.md             # Phase 2 output (/speckit-tasks — NOT created by /speckit-plan)
 ```
 
 ### Source Code (repository root)
-<!--
-  ACTION REQUIRED: Replace the placeholder tree below with the concrete layout
-  for this feature. Delete unused options and expand the chosen structure with
-  real paths (e.g., apps/admin, packages/something). The delivered plan must
-  not include Option labels.
--->
 
 ```text
-# [REMOVE IF UNUSED] Option 1: Single project (DEFAULT)
-src/
-├── models/
-├── services/
-├── cli/
-└── lib/
+extension/
+├── manifest.json            # MV3 manifest: content script, action popup, service worker
+├── content/
+│   └── content.js           # Detection, fingerprinting, tagging hooks, capture, fill
+├── popup/
+│   ├── popup.html
+│   ├── popup.css
+│   └── popup.js             # Form list, dataset CRUD, export/import (ES module)
+├── shared/
+│   ├── fingerprint.js       # Deterministic form ID generation (loaded by content + popup)
+│   └── storage.js           # Storage schema helpers, read/write, import/export logic
+├── background/
+│   └── service-worker.js    # Badge updates from content-script status messages
+└── icons/
+    └── icon-{16,32,48,128}.png
 
 tests/
-├── contract/
-├── integration/
-└── unit/
-
-# [REMOVE IF UNUSED] Option 2: Web application (when "frontend" + "backend" detected)
-backend/
-├── src/
-│   ├── models/
-│   ├── services/
-│   └── api/
-└── tests/
-
-frontend/
-├── src/
-│   ├── components/
-│   ├── pages/
-│   └── services/
-└── tests/
-
-# [REMOVE IF UNUSED] Option 3: Mobile + API (when "iOS/Android" detected)
-api/
-└── [same as backend above]
-
-ios/ or android/
-└── [platform-specific structure: feature modules, UI flows, platform tests]
+└── fixtures/
+    ├── simple-form.html     # 1 standard form, all field types
+    ├── multi-forms.html     # 3+ forms incl. two identical ones
+    └── dynamic-form.html    # SPA-style late-injected form + pseudo-form (div-based)
 ```
 
-**Structure Decision**: [Document the selected structure and reference the real
-directories captured above]
+**Structure Decision**: Single flat `extension/` directory loadable directly via `chrome://extensions` → "Load unpacked" — no build output directory. Shared logic (`shared/*.js`) is listed in the manifest's `content_scripts.js` array ahead of `content.js` (content scripts cannot use ES modules), and imported as ES modules by the popup and service worker. `tests/fixtures/` holds static HTML pages for manual validation per quickstart.md.
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+> No constitutional violations — table intentionally empty.
