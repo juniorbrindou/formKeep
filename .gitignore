@@ -1,1 +1,6 @@
 .claude/
+dist/
+.venv/
+
+# Tuyauterie Spec Kit (scaffolding de l'outil) — la doc lisible reste dans specs/
+.specify/

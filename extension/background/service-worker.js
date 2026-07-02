@@ -8,6 +8,6 @@ chrome.runtime.onMessage.addListener((msg, sender) => {
     text: count > 0 ? String(count) : "",
   });
   if (count > 0) {
-    chrome.action.setBadgeBackgroundColor({ tabId: sender.tab.id, color: "#7c3aed" });
+    chrome.action.setBadgeBackgroundColor({ tabId: sender.tab.id, color: "#0f7a57" });
   }
 });

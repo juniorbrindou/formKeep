@@ -353,7 +353,7 @@
     if (!entry) return { ok: false, error: "FORM_NOT_FOUND" };
     const el = entry.element;
     const prev = { outline: el.style.outline, offset: el.style.outlineOffset };
-    el.style.outline = "3px solid #7c3aed";
+    el.style.outline = "3px solid #0f7a57";
     el.style.outlineOffset = "2px";
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     setTimeout(() => {
@@ -497,7 +497,7 @@
         color: "#1f2430",
         background: "#fff",
       });
-      item.addEventListener("mouseenter", () => (item.style.background = "#ede9fe"));
+      item.addEventListener("mouseenter", () => (item.style.background = "#e3f4ec"));
       item.addEventListener("mouseleave", () => (item.style.background = "#fff"));
       item.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -529,7 +529,7 @@
       fontSize: "12px",
       fontWeight: "600",
       color: "#fff",
-      background: "#7c3aed",
+      background: "#0f7a57",
       borderRadius: "999px",
       padding: "3px 10px",
       cursor: "pointer",

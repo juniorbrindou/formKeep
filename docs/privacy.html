@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Politique de confidentialité — formKeep</title>
+  <style>
+    :root { --brand:#0f7a57; --navy:#18243c; --text:#1f2733; --muted:#6b7280; --border:#e6e8ec; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:16px/1.6 system-ui,"Segoe UI",sans-serif; color:var(--text); background:#f7faf8; }
+    header { background:linear-gradient(135deg,#0f7a57,#2f9e78); color:#fff; padding:40px 20px; text-align:center; }
+    header h1 { margin:0; font-size:26px; font-weight:800; }
+    header p { margin:6px 0 0; opacity:.9; font-size:14px; }
+    main { max-width:760px; margin:0 auto; padding:32px 20px 60px; }
+    h2 { color:var(--navy); font-size:19px; margin:30px 0 8px; }
+    p, li { color:var(--text); }
+    a { color:var(--brand); }
+    .lead { background:#e3f4ec; border:1px solid #bfe6d6; border-radius:10px; padding:14px 16px; }
+    code { background:#eef1f0; padding:1px 6px; border-radius:5px; font-size:14px; }
+    footer { text-align:center; color:var(--muted); font-size:13px; padding:20px; border-top:1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Politique de confidentialité — formKeep</h1>
+    <p>Dernière mise à jour : 2026-07-02</p>
+  </header>
+  <main>
+    <p class="lead"><strong>formKeep ne collecte, ne transmet et ne vend aucune donnée.</strong>
+    Toutes les données restent stockées <strong>localement dans votre navigateur</strong>
+    (<code>chrome.storage.local</code>). Aucun serveur, aucun compte, aucune analyse d'usage,
+    aucune dépendance tierce, aucune requête réseau.</p>
+
+    <h2>Données traitées</h2>
+    <p>Lorsque <strong>vous</strong> décidez de suivre un formulaire, l'extension enregistre localement :</p>
+    <ul>
+      <li>l'origine et le chemin (URL) de la page du formulaire suivi ;</li>
+      <li>une étiquette et la structure des champs du formulaire ;</li>
+      <li>les valeurs que vous saisissez au moment où vous soumettez le formulaire,
+          regroupées en « jeux de données » que vous nommez.</li>
+    </ul>
+    <p>Ces valeurs peuvent inclure des informations personnelles ou d'authentification
+    (par exemple un identifiant ou un mot de passe) <strong>si vous choisissez de suivre un
+    formulaire qui en contient</strong>. Ces données ne quittent jamais votre appareil.</p>
+
+    <h2>Ce que formKeep ne fait pas</h2>
+    <ul>
+      <li>Aucune donnée n'est envoyée vers un serveur ou un tiers.</li>
+      <li>Aucun suivi publicitaire, aucune télémétrie, aucun identifiant de suivi.</li>
+      <li>Aucune injection automatique : le remplissage est toujours déclenché par vous.</li>
+      <li>Le contenu des pages n'est jamais lu ni stocké en dehors des formulaires que vous
+          choisissez explicitement de suivre.</li>
+    </ul>
+
+    <h2>Contrôle et suppression</h2>
+    <ul>
+      <li>Vous pouvez à tout moment supprimer un jeu de données, cesser de suivre un formulaire
+          (ce qui supprime ses jeux), ou tout effacer.</li>
+      <li><strong>Exporter (JSON)</strong> produit un fichier local que vous seul contrôlez ;
+          <strong>Importer</strong> lit un fichier que vous fournissez.</li>
+      <li>La désinstallation de l'extension supprime toutes les données stockées.</li>
+    </ul>
+
+    <h2>Permissions et justification</h2>
+    <ul>
+      <li><code>storage</code> — enregistrer localement vos formulaires suivis et jeux de données.</li>
+      <li><code>activeTab</code> — lire et remplir le formulaire de l'onglet courant, uniquement
+          lorsque vous en faites la demande.</li>
+      <li>Accès aux pages (<code>&lt;all_urls&gt;</code>) — détecter les formulaires et proposer
+          le remplissage sur les sites que <strong>vous</strong> choisissez de suivre. Aucune
+          donnée de page n'est collectée en dehors de cette action volontaire.</li>
+    </ul>
+
+    <h2>Contact</h2>
+    <p>Pour toute question : <a href="mailto:225juniorbrindou@gmail.com">225juniorbrindou@gmail.com</a></p>
+  </main>
+  <footer>formKeep — extension de navigateur, 100 % locale.</footer>
+</body>
+</html>

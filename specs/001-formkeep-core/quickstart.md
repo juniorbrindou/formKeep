@@ -47,7 +47,7 @@ maps to the spec's user stories (US) and success criteria (SC).
 
 ### V4 — One-click fill (US3, SC-001, SC-003)
 
-1. Reload `simple-form.html` (empty form); toolbar badge shows a count **and a purple
+1. Reload `simple-form.html` (empty form); toolbar badge shows a count **and a green
    "fK · Remplir" chip is anchored to the form's top-right corner** (FR-016)
 2. Click the in-page chip → **expected**: all fields restored exactly in 1 click; the chip
    briefly shows "✓ N champ(s)"

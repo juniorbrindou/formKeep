@@ -33,6 +33,46 @@
     toastTimer = setTimeout(() => { el.hidden = true; }, 2600);
   }
 
+  // ---------- Menu de débordement « ⋯ » (actions secondaires) ----------
+
+  let openMenuEl = null;
+  function closeMenu() {
+    if (openMenuEl) { openMenuEl.remove(); openMenuEl = null; }
+  }
+  document.addEventListener("click", closeMenu);
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeMenu(); });
+
+  // items: [{ label, danger?, onClick }]
+  function overflowMenu(items) {
+    const id = String(++overflowMenu._seq);
+    const btn = h("button", {
+      class: "icon-btn",
+      title: "Plus d'actions",
+      "aria-label": "Plus d'actions",
+    }, "⋯");
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const wasOpen = openMenuEl && openMenuEl.dataset.owner === id;
+      closeMenu();
+      if (wasOpen) return; // re-clic sur le même bouton : ferme
+      const menu = h("div", { class: "menu" });
+      menu.dataset.owner = id;
+      for (const it of items) {
+        menu.append(h("button", {
+          class: "menu-item" + (it.danger ? " danger" : ""),
+          onclick: (ev) => { ev.stopPropagation(); closeMenu(); it.onClick(); },
+        }, it.label));
+      }
+      document.getElementById("menu-root").append(menu);
+      const r = btn.getBoundingClientRect();
+      menu.style.top = Math.round(r.bottom + 4) + "px";
+      menu.style.right = Math.round(window.innerWidth - r.right) + "px";
+      openMenuEl = menu;
+    });
+    return btn;
+  }
+  overflowMenu._seq = 0;
+
   // ---------- Dialogues (confirm/prompt/choix maison, fiables en popup) ----------
 
   function openDialog(build) {
@@ -169,10 +209,10 @@
     }
 
     if (form) {
-      actions.append(
-        h("button", { onclick: () => renameForm(form) }, "Renommer"),
-        h("button", { class: "danger", onclick: () => untrackForm(form) }, "Ne plus suivre")
-      );
+      title.append(overflowMenu([
+        { label: "Renommer", onClick: () => renameForm(form) },
+        { label: "Ne plus suivre", danger: true, onClick: () => untrackForm(form) },
+      ]));
     }
 
     const card = h("div", { class: "card tracked" }, title, actions);
@@ -197,13 +237,13 @@
     return h("div", { class: "card tracked" },
       h("div", { class: "title-row" },
         h("strong", {}, form.label),
-        h("span", { class: "count" }, `${count} jeu(x)`)
+        h("span", { class: "count" }, `${count} jeu(x)`),
+        overflowMenu([
+          { label: "Renommer", onClick: () => renameForm(form) },
+          { label: "Supprimer", danger: true, onClick: () => untrackForm(form) },
+        ])
       ),
       h("div", { class: "meta", title: `${form.origin}${form.path}` }, `${form.origin}${form.path}`),
-      h("div", { class: "actions" },
-        h("button", { onclick: () => renameForm(form) }, "Renommer"),
-        h("button", { class: "danger", onclick: () => untrackForm(form) }, "Supprimer")
-      ),
       datasetPanel(form)
     );
   }
@@ -265,47 +305,53 @@
 
   // ---------- Jeux de données (T021–T023) ----------
 
+  function datasetRow(form, ds) {
+    const isActive = ds.id === form.activeDatasetId;
+    const radio = h("input", {
+      type: "radio",
+      name: `active-${form.id}`,
+      title: "Définir comme jeu actif",
+      onchange: () => setActiveDataset(form, ds.id),
+    });
+    radio.checked = isActive;
+    return h("div", { class: "ds-row" + (isActive ? " active" : "") },
+      radio,
+      h("div", { class: "ds-head" },
+        h("span", { class: "ds-name", title: ds.name }, ds.name),
+        h("span", { class: "ds-date" }, new Date(ds.updatedAt || ds.createdAt).toLocaleDateString()),
+        overflowMenu([
+          { label: "Modifier", onClick: () => openEditor(form, ds) },
+          { label: "Renommer", onClick: () => renameDataset(form, ds) },
+          { label: "Supprimer", danger: true, onClick: () => deleteDataset(form, ds) },
+        ])
+      )
+    );
+  }
+
   function datasetPanel(form) {
-    const panel = h("div", { class: "panel" });
     const datasets = Object.values(form.datasets || {}).sort(
       (a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)
     );
+    const addBtn = () =>
+      h("button", { class: "ghost", onclick: () => openEditor(form, null) }, "+ Nouveau jeu de données");
 
+    // Aucun jeu : pas de repli, juste le bouton d'ajout.
     if (!datasets.length) {
-      panel.append(h("p", { class: "muted" }, "Aucun jeu de données."));
+      return h("div", { class: "panel" }, addBtn());
     }
 
-    for (const ds of datasets) {
-      const isActive = ds.id === form.activeDatasetId;
-      const radio = h("input", {
-        type: "radio",
-        name: `active-${form.id}`,
-        title: "Définir comme jeu actif",
-        onchange: () => setActiveDataset(form, ds.id),
-      });
-      radio.checked = isActive;
-      panel.append(
-        h("div", { class: "ds-row" + (isActive ? " active" : "") },
-          radio,
-          h("div", { class: "ds-body" },
-            h("div", { class: "ds-head" },
-              h("span", { class: "ds-name", title: ds.name }, ds.name),
-              h("span", { class: "ds-date" }, new Date(ds.updatedAt || ds.createdAt).toLocaleDateString())
-            ),
-            h("div", { class: "ds-actions" },
-              h("button", { class: "small", onclick: () => openEditor(form, ds) }, "Modifier"),
-              h("button", { class: "small", onclick: () => renameDataset(form, ds) }, "Renommer"),
-              h("button", { class: "small danger", onclick: () => deleteDataset(form, ds) }, "Suppr.")
-            )
-          )
-        )
-      );
-    }
-
-    panel.append(
-      h("button", { class: "ghost", onclick: () => openEditor(form, null) }, "+ Nouveau jeu de données")
+    // Panneau repliable (replié par défaut) : gagne de la hauteur, le jeu actif
+    // reste visible dans le résumé.
+    const active = form.datasets[form.activeDatasetId];
+    const summary = h("summary", { class: "panel-summary" },
+      h("span", {}, "Jeux de données"),
+      h("span", { class: "count" }, String(datasets.length)),
+      active ? h("span", { class: "panel-active", title: active.name }, active.name) : ""
     );
-    return panel;
+    const body = h("div", { class: "panel-body" });
+    for (const ds of datasets) body.append(datasetRow(form, ds));
+    body.append(addBtn());
+    return h("details", { class: "panel" }, summary, body);
   }
 
   async function setActiveDataset(form, dsId) {
