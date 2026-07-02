@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>formKeep fixture — simple form</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; }
+    label { display: block; margin-top: .8rem; font-weight: 600; }
+    fieldset { margin-top: .8rem; }
+    input, select, textarea { display: block; margin-top: .2rem; padding: .3rem; width: 100%; box-sizing: border-box; }
+    input[type="checkbox"], input[type="radio"] { display: inline-block; width: auto; }
+    button { margin-top: 1rem; padding: .5rem 1.5rem; }
+  </style>
+</head>
+<body>
+  <h1>Fixture V1–V5 : un formulaire, tous les types de champs (FR-014)</h1>
+
+  <form id="signup" name="signup" action="#" method="get">
+    <label>Nom d'utilisateur
+      <input type="text" name="username" placeholder="jdupont">
+    </label>
+
+    <label>Bio
+      <textarea name="bio" rows="3" placeholder="Quelques mots…"></textarea>
+    </label>
+
+    <label>E-mail
+      <input type="email" name="email" placeholder="j@exemple.dev">
+    </label>
+
+    <label>Âge
+      <input type="number" name="age" min="0" max="120">
+    </label>
+
+    <label>Date de naissance
+      <input type="date" name="birthdate">
+    </label>
+
+    <label>Mot de passe
+      <input type="password" name="password">
+    </label>
+
+    <input type="hidden" name="csrf_token" value="fixture-token-123">
+
+    <label>Pays
+      <select name="country">
+        <option value="">— choisir —</option>
+        <option value="ci">Côte d'Ivoire</option>
+        <option value="fr">France</option>
+        <option value="ca">Canada</option>
+      </select>
+    </label>
+
+    <label>Langues (multiple)
+      <select name="languages" multiple size="3">
+        <option value="fr">Français</option>
+        <option value="en">Anglais</option>
+        <option value="es">Espagnol</option>
+      </select>
+    </label>
+
+    <fieldset>
+      <legend>Newsletter (checkbox simple)</legend>
+      <label><input type="checkbox" name="newsletter" value="yes"> S'abonner</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Centres d'intérêt (groupe de checkboxes)</legend>
+      <label><input type="checkbox" name="interests" value="dev"> Développement</label>
+      <label><input type="checkbox" name="interests" value="design"> Design</label>
+      <label><input type="checkbox" name="interests" value="devops"> DevOps</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Formule (groupe de radios)</legend>
+      <label><input type="radio" name="plan" value="free"> Gratuit</label>
+      <label><input type="radio" name="plan" value="pro"> Pro</label>
+      <label><input type="radio" name="plan" value="team"> Équipe</label>
+    </fieldset>
+
+    <label>Avatar (champ file — doit être ignoré par formKeep)
+      <input type="file" name="avatar">
+    </label>
+
+    <button type="submit">Créer le compte</button>
+  </form>
+</body>
+</html>

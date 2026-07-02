@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>formKeep fixture — dynamic & pseudo forms</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; }
+    .card { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+    label { display: block; margin-top: .5rem; }
+    input, select { display: block; margin-top: .2rem; padding: .3rem; width: 100%; box-sizing: border-box; }
+    button { margin-top: .8rem; padding: .4rem 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Fixture V6 : formulaire injecté dynamiquement + pseudo-formulaire</h1>
+
+  <div id="late-slot" class="card">
+    <em>Un formulaire sera injecté ici 2 secondes après le chargement (cas SPA)…</em>
+  </div>
+
+  <!-- Pseudo-formulaire : aucun <form>, juste des inputs + un bouton -->
+  <div id="pseudo" class="card">
+    <h2>Feedback rapide (pseudo-formulaire en div)</h2>
+    <label>Votre nom <input type="text" name="fb_name"></label>
+    <label>Commentaire <input type="text" name="fb_comment"></label>
+    <button id="pseudo-submit" type="button">Envoyer</button>
+  </div>
+
+  <script>
+    // Injection SPA-style après 2 s (Constitution V / US1 scénario 3)
+    setTimeout(() => {
+      const slot = document.getElementById("late-slot");
+      slot.innerHTML = `
+        <form name="feedback" action="#" method="get">
+          <h2>Formulaire injecté (2 s après chargement)</h2>
+          <label>Sujet <input type="text" name="subject"></label>
+          <label>Note
+            <select name="rating">
+              <option value="1">1</option>
+              <option value="3">3</option>
+              <option value="5">5</option>
+            </select>
+          </label>
+          <button type="submit">Envoyer la note</button>
+        </form>`;
+    }, 2000);
+
+    document.getElementById("pseudo-submit").addEventListener("click", () => {
+      const name = document.querySelector('input[name="fb_name"]').value;
+      alert(`Pseudo-formulaire soumis (nom: ${name || "vide"})`);
+    });
+  </script>
+</body>
+</html>

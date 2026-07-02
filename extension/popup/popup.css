@@ -1,0 +1,205 @@
+/* formKeep — popup (T011/T027). Léger, sans framework ni police externe. */
+:root {
+  --accent: #7c3aed;
+  --accent-soft: #ede9fe;
+  --text: #1f2430;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --bg: #ffffff;
+  --danger: #dc2626;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 380px;
+  max-height: 560px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  font: 13px/1.45 system-ui, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+header h1 { margin: 0; font-size: 15px; color: var(--accent); }
+
+main { overflow-y: auto; padding: 6px 14px 12px; flex: 1; }
+
+h2 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin: 14px 0 6px;
+}
+
+.muted { color: var(--muted); font-style: italic; margin: 4px 0; }
+
+.list { display: flex; flex-direction: column; gap: 8px; }
+
+.card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.card .title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.card .title-row strong { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.badge {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-radius: 10px;
+  padding: 1px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.meta { color: var(--muted); font-size: 11px; margin-top: 2px; overflow-wrap: anywhere; }
+
+.actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  align-items: center;
+}
+
+button {
+  font: inherit;
+  border: 1px solid var(--border);
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+button:hover { border-color: var(--accent); color: var(--accent); }
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.primary:hover { opacity: .9; color: #fff; }
+
+button.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+button.ghost { border: none; color: var(--accent); background: none; }
+
+select {
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  max-width: 150px;
+}
+
+/* Panneau jeux de données */
+.panel {
+  margin-top: 8px;
+  border-top: 1px dashed var(--border);
+  padding-top: 8px;
+}
+
+.ds-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+}
+
+.ds-row .ds-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+
+.ds-row .ds-date { color: var(--muted); font-size: 11px; white-space: nowrap; }
+
+.ds-row button { padding: 2px 7px; font-size: 12px; }
+
+footer {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: #fff;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  z-index: 30;
+  max-width: 90%;
+}
+
+/* Dialogues */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 18, 25, .45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.dialog {
+  background: #fff;
+  border-radius: 10px;
+  padding: 14px;
+  width: 330px;
+  max-height: 480px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .25);
+}
+
+.dialog h3 { margin: 0 0 10px; font-size: 14px; }
+
+.dialog .field-row { margin-bottom: 8px; }
+
+.dialog .field-row label {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 2px;
+  overflow-wrap: anywhere;
+}
+
+.dialog input[type="text"] {
+  width: 100%;
+  font: inherit;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 5px 8px;
+}
+
+.dialog .hint { color: var(--muted); font-size: 11px; }
+
+.dialog .dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}

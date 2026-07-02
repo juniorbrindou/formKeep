@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>formKeep fixture — multi forms</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; }
+    form { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin-top: 1.5rem; }
+    label { display: block; margin-top: .5rem; }
+    input, textarea { display: block; margin-top: .2rem; padding: .3rem; width: 100%; box-sizing: border-box; }
+    button { margin-top: .8rem; padding: .4rem 1.2rem; }
+  </style>
+</head>
+<body>
+  <h1>Fixture V1/V9 : formulaires multiples (dont 2 identiques)</h1>
+  <p>Astuce V9 : ajouter <code>?many</code> à l'URL pour générer 20 formulaires supplémentaires.</p>
+
+  <form id="login" name="login" action="#" method="get">
+    <h2>Connexion</h2>
+    <label>E-mail <input type="email" name="email"></label>
+    <label>Mot de passe <input type="password" name="password"></label>
+    <button type="submit">Se connecter</button>
+  </form>
+
+  <form name="search" action="#" method="get">
+    <h2>Recherche</h2>
+    <label>Terme <input type="text" name="q"></label>
+    <button type="submit">Rechercher</button>
+  </form>
+
+  <form name="contact" action="#" method="get">
+    <h2>Contact</h2>
+    <label>Nom <input type="text" name="name"></label>
+    <label>E-mail <input type="email" name="email"></label>
+    <label>Message <textarea name="message" rows="3"></textarea></label>
+    <button type="submit">Envoyer</button>
+  </form>
+
+  <!-- Deux formulaires strictement identiques : cas « occurrence index » -->
+  <form action="#" method="get">
+    <h2>Newsletter (haut de page)</h2>
+    <label>E-mail <input type="email" name="newsletter_email"></label>
+    <button type="submit">S'abonner</button>
+  </form>
+
+  <form action="#" method="get">
+    <h2>Newsletter (bas de page)</h2>
+    <label>E-mail <input type="email" name="newsletter_email"></label>
+    <button type="submit">S'abonner</button>
+  </form>
+
+  <script>
+    // V9 : ?many → 20 formulaires supplémentaires pour le test de performance
+    if (location.search.includes("many")) {
+      for (let i = 1; i <= 20; i++) {
+        const f = document.createElement("form");
+        f.setAttribute("action", "#");
+        f.setAttribute("method", "get");
+        f.innerHTML = `
+          <h2>Formulaire généré ${i}</h2>
+          <label>Champ A <input type="text" name="gen_a_${i}"></label>
+          <label>Champ B <input type="text" name="gen_b_${i}"></label>
+          <button type="submit">OK</button>`;
+        document.body.appendChild(f);
+      }
+    }
+  </script>
+</body>
+</html>

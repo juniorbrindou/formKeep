@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="../icons/icon-32.png" alt="" width="20" height="20">
+    <h1>formKeep</h1>
+  </header>
+
+  <main>
+    <section>
+      <h2>Sur cette page</h2>
+      <div id="page-forms" class="list"></div>
+    </section>
+
+    <section>
+      <h2>Tous les formulaires suivis</h2>
+      <div id="all-forms" class="list"></div>
+    </section>
+  </main>
+
+  <footer>
+    <button id="export-btn" class="ghost">Exporter (JSON)</button>
+    <button id="import-btn" class="ghost">Importer…</button>
+    <input type="file" id="import-file" accept=".json,application/json" hidden>
+  </footer>
+
+  <div id="toast" hidden></div>
+  <div id="dialog-root"></div>
+
+  <script src="../shared/fingerprint.js"></script>
+  <script src="../shared/storage.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
