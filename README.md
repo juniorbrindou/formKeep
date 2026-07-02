@@ -1,10 +1,38 @@
+<div align="center">
+
+<img src="extension/icons/icon-128.png" width="96" height="96" alt="Logo formKeep">
+
 # formKeep
 
-Extension Chrome personnelle pour **taguer, sauvegarder et pré-remplir en un clic** les
-formulaires que vous remplissez à longueur de journée (environnements de dev, back-offices…).
+**Taguez, sauvegardez et pré-remplissez en un clic les formulaires du quotidien.**
 
-**100 % local** : toutes les données restent dans votre navigateur (`chrome.storage.local`).
-Aucune requête réseau, aucun compte, aucune dépendance, aucun build.
+Extension de navigateur 100 % locale — aucune donnée ne quitte votre machine.
+
+</div>
+
+---
+
+Né d'un besoin personnel : conçu pour mes propres développements et les
+formulaires répétitifs que je remplis au quotidien (environnements de dev,
+back-offices, panneaux d'administration…). Je le partage tel quel, dans
+l'espoir qu'il vous rende le même service.
+
+## Fonctionnalités
+
+- 🏷️ **Taguer** — détection automatique des formulaires d'une page, suivi en un clic
+- 💾 **Sauvegarder** — les valeurs saisies sont capturées à chaque soumission, sans jamais bloquer le formulaire
+- ⚡ **Re-remplir** — un chip ancré au formulaire ou le bouton de la popup restaurent tout en un clic ; rien n'est jamais injecté automatiquement
+- 🗂️ **Jeux de données multiples** — plusieurs profils par formulaire (ex. « admin » / « test »), basculables à la volée
+- 📤 **Export / Import** — sauvegarde et transfert via un simple fichier JSON
+- 🔒 **100 % local** — `chrome.storage.local` uniquement : aucune requête réseau, aucun compte, aucune télémétrie, aucune dépendance
+
+## Aperçu
+
+<table>
+<tr><td width="33%" align="center"><img src="store/screenshots/01-detecter.png" alt="Détection des formulaires"></td>
+<td width="33%" align="center"><img src="store/screenshots/02-remplir.png" alt="Remplissage et jeux de données"></td>
+<td width="33%" align="center"><img src="store/screenshots/03-local.png" alt="Tous les formulaires suivis, 100% local"></td></tr>
+</table>
 
 ## Installation
 
@@ -39,20 +67,14 @@ choisir le jeu actif.
 - **Importer…** : restaure un export, en mode **Remplacer tout** ou **Fusionner** (l'importé
   gagne en cas de conflit). Un fichier invalide est rejeté sans toucher aux données.
 
+## Confidentialité
+
+Aucune donnée ne quitte votre navigateur : pas de serveur, pas de compte, pas d'analytics.
+Détails et justification des permissions : [store/PRIVACY.md](store/PRIVACY.md).
+
 ## Limites connues (v1)
 
 - Formulaires dans des iframes non pris en charge (page principale uniquement)
 - Champs `file` ignorés (le navigateur interdit leur remplissage programmatique)
 - Les mots de passe sont sauvegardés comme les autres champs — outil personnel de dev,
   à ne pas utiliser avec des credentials de production sensibles
-
-## Validation
-
-Scénarios de validation manuelle (V1–V9) et pages de test : voir
-[specs/001-formkeep-core/quickstart.md](specs/001-formkeep-core/quickstart.md) et
-[tests/fixtures/](tests/fixtures/).
-
-## Documentation projet
-
-- Spécification : [specs/001-formkeep-core/spec.md](specs/001-formkeep-core/spec.md)
-- Plan & design : [specs/001-formkeep-core/plan.md](specs/001-formkeep-core/plan.md)
