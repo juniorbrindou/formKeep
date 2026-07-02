@@ -135,7 +135,7 @@
     const title = h("div", { class: "title-row" },
       h("strong", {}, info.label + (info.occurrence > 0 ? ` (#${info.occurrence + 1})` : "")),
       info.tracked ? h("span", { class: "badge" }, "suivi") : "",
-      h("span", { class: "meta" }, `${info.fieldCount} champs`)
+      h("span", { class: "count" }, `${info.fieldCount} champs`)
     );
 
     const actions = h("div", { class: "actions" },
@@ -175,7 +175,7 @@
       );
     }
 
-    const card = h("div", { class: "card" }, title, actions);
+    const card = h("div", { class: "card tracked" }, title, actions);
     if (form) card.append(datasetPanel(form));
     return card;
   }
@@ -194,12 +194,12 @@
 
   function trackedFormCard(form) {
     const count = Object.keys(form.datasets || {}).length;
-    return h("div", { class: "card" },
+    return h("div", { class: "card tracked" },
       h("div", { class: "title-row" },
         h("strong", {}, form.label),
-        h("span", { class: "meta" }, `${count} jeu(x)`)
+        h("span", { class: "count" }, `${count} jeu(x)`)
       ),
-      h("div", { class: "meta" }, `${form.origin}${form.path}`),
+      h("div", { class: "meta", title: `${form.origin}${form.path}` }, `${form.origin}${form.path}`),
       h("div", { class: "actions" },
         h("button", { onclick: () => renameForm(form) }, "Renommer"),
         h("button", { class: "danger", onclick: () => untrackForm(form) }, "Supprimer")
@@ -276,21 +276,28 @@
     }
 
     for (const ds of datasets) {
+      const isActive = ds.id === form.activeDatasetId;
       const radio = h("input", {
         type: "radio",
         name: `active-${form.id}`,
-        title: "Jeu actif",
+        title: "Définir comme jeu actif",
         onchange: () => setActiveDataset(form, ds.id),
       });
-      radio.checked = ds.id === form.activeDatasetId;
+      radio.checked = isActive;
       panel.append(
-        h("div", { class: "ds-row" },
+        h("div", { class: "ds-row" + (isActive ? " active" : "") },
           radio,
-          h("span", { class: "ds-name" }, ds.name),
-          h("span", { class: "ds-date" }, new Date(ds.updatedAt || ds.createdAt).toLocaleDateString()),
-          h("button", { onclick: () => openEditor(form, ds) }, "Modifier"),
-          h("button", { onclick: () => renameDataset(form, ds) }, "Renommer"),
-          h("button", { class: "danger", onclick: () => deleteDataset(form, ds) }, "Suppr.")
+          h("div", { class: "ds-body" },
+            h("div", { class: "ds-head" },
+              h("span", { class: "ds-name", title: ds.name }, ds.name),
+              h("span", { class: "ds-date" }, new Date(ds.updatedAt || ds.createdAt).toLocaleDateString())
+            ),
+            h("div", { class: "ds-actions" },
+              h("button", { class: "small", onclick: () => openEditor(form, ds) }, "Modifier"),
+              h("button", { class: "small", onclick: () => renameDataset(form, ds) }, "Renommer"),
+              h("button", { class: "small danger", onclick: () => deleteDataset(form, ds) }, "Suppr.")
+            )
+          )
         )
       );
     }
