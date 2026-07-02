@@ -97,6 +97,7 @@ Single flat browser-extension layout per plan.md: `extension/` (loadable unpacke
 - [X] T018 [US3] Implement `FILL_FORM` handler in `extension/content/content.js` — read the dataset from storage by `datasetId`, match `values` keys to current DOM fields by `key`, set values per type (text/select/multi-select/checkbox/radio) and dispatch `input`/`change` events for framework reactivity, return `{ ok, filled, skipped }`; unmatched entries skipped silently (FR-015, contracts/messages.md)
 - [X] T019 [US3] Implement fill controls in `extension/popup/popup.js` — "Fill" button per tracked form (uses active dataset) plus dataset picker when several datasets exist (FR-008); display filled/skipped result feedback
 - [X] T020 [US3] Implement badge signalling in `extension/content/content.js` — send `PAGE_STATUS` with the count of tracked forms having datasets on initial scan, after each rescan, and on `storage.onChanged` (worker side already done in T010)
+- [X] T030 [US3] Implement in-page fill chip in `extension/content/content.js` — discreet permanent "fK · Remplir" chip anchored top-right of each tracked form with data; click fills with active dataset, small menu when several datasets; hosted in body, `data-formkeep` marked, excluded from MutationObserver rescans (FR-016, added 2026-07-02 after user feedback)
 
 **Checkpoint**: quickstart V4 + V5 + V6 pass — the complete P1 loop (detect → tag → capture → refill) is functional; **this is the MVP**
 

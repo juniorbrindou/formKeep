@@ -19,9 +19,10 @@ Aucune requête réseau, aucun compte, aucune dépendance, aucun build.
    détectés sont listés (« Repérer » les surligne sur la page). Cliquer **Suivre**.
 2. **Sauvegarder** — Remplir le formulaire et le soumettre normalement : les valeurs sont
    capturées automatiquement dans un jeu de données local (la soumission n'est jamais bloquée).
-3. **Re-remplir** — En revenant sur la page, le badge de l'icône indique que des données
-   existent. Ouvrir la popup et cliquer **Remplir** : le formulaire est restauré en un clic.
-   *(Jamais d'injection automatique : c'est toujours vous qui déclenchez.)*
+3. **Re-remplir** — En revenant sur la page, un petit chip violet **« fK · Remplir »** est
+   ancré au coin du formulaire : un clic et le formulaire est restauré (menu de choix si
+   plusieurs jeux). Le badge de l'icône et le bouton **Remplir** de la popup restent
+   disponibles. *(Jamais d'injection automatique : c'est toujours vous qui déclenchez.)*
 
 ## Jeux de données
 

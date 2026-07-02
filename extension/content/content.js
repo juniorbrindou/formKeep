@@ -17,8 +17,16 @@
 
   // ---------- Détection (T009, research R2/R3) ----------
 
-  // Pseudo-formulaires : inputs hors <form> dont un conteneur proche possède
-  // un mécanisme de soumission (bouton). Conteneurs imbriqués dédupliqués.
+  // Sélecteur de « mécanisme de soumission » volontairement large : les apps
+  // modernes utilisent souvent des <div>/<a> stylés en bouton (CSS modules,
+  // Tailwind…) plutôt qu'un vrai <button>.
+  const SUBMIT_CONTROL =
+    'button, input[type="submit"], input[type="button"], [role="button"], ' +
+    '[class*="btn" i], [class*="button" i], [class*="submit" i], ' +
+    'a:not([href]), a[href="#"]';
+
+  // Pseudo-formulaires : inputs hors <form> dont un conteneur ancêtre possède
+  // un mécanisme de soumission. Conteneurs imbriqués dédupliqués.
   function findPseudoForms(doc) {
     const orphans = [...doc.querySelectorAll("input, select, textarea")].filter(
       (el) => !el.closest("form")
@@ -27,8 +35,9 @@
     for (const el of orphans) {
       let node = el.parentElement;
       let depth = 0;
-      while (node && depth < 6 && node !== doc.body && node !== doc.documentElement) {
-        if (node.querySelector('button, [type="submit"], [role="button"]')) {
+      // Profondeur 12 : les arbres de composants (React & co) sont profonds.
+      while (node && depth < 12 && node !== doc.body && node !== doc.documentElement) {
+        if (node.querySelector(SUBMIT_CONTROL)) {
           containers.add(node);
           break;
         }
@@ -44,12 +53,21 @@
   function scan() {
     registry.clear();
     const candidates = [];
-    for (const form of document.querySelectorAll("form")) {
+    const realForms = document.querySelectorAll("form");
+    for (const form of realForms) {
       candidates.push({ element: form, isForm: true });
     }
-    for (const el of findPseudoForms(document)) {
+    const pseudo = findPseudoForms(document);
+    for (const el of pseudo) {
       candidates.push({ element: el, isForm: false });
     }
+    // Diagnostic visible en console (niveau Verbose) à chaque scan.
+    const controls = document.querySelectorAll("input, select, textarea");
+    const orphanCount = [...controls].filter((el) => !el.closest("form")).length;
+    console.debug(
+      `[formKeep] scan ${location.pathname} — ${realForms.length} <form>, ` +
+        `${pseudo.length} pseudo-formulaire(s), ${controls.length} champ(s) dont ${orphanCount} hors <form>`
+    );
 
     const occurrences = new Map(); // baseHash → compteur (formulaires identiques)
     for (const cand of candidates) {
@@ -72,17 +90,62 @@
     tracked.clear();
     const all = await Store.getAllForms();
     const now = Date.now();
+    const orphans = [];
     for (const form of all) {
-      if (!registry.has(form.id)) continue;
-      tracked.set(form.id, form);
-      // lastSeenAt : au plus une écriture par minute pour éviter les boucles
-      // d'événements onChanged (le rafraîchissement relit sans réécrire).
-      if (now - (form.lastSeenAt || 0) > 60000) {
-        form.lastSeenAt = now;
-        await Store.saveForm(form);
+      if (registry.has(form.id)) {
+        tracked.set(form.id, form);
+        // lastSeenAt : au plus une écriture par minute pour éviter les boucles
+        // d'événements onChanged (le rafraîchissement relit sans réécrire).
+        if (now - (form.lastSeenAt || 0) > 60000) {
+          form.lastSeenAt = now;
+          await Store.saveForm(form);
+        }
+      } else if (form.origin === ORIGIN && form.path === PATH) {
+        // Enregistrement suivi de CETTE page dont l'empreinte ne correspond
+        // plus : la structure du formulaire a probablement changé (site en dev).
+        orphans.push(form);
       }
     }
+    await adoptOrphan(orphans, now);
     sendStatus();
+    // Un souci d'affichage du chip ne doit JAMAIS casser détection/capture.
+    try {
+      updateChips();
+    } catch (err) {
+      console.warn("[formKeep] chip:", err);
+    }
+  }
+
+  // Auto-réparation d'identité : quand la structure d'un formulaire suivi a
+  // dérivé (rebuild du site en dev), son empreinte change et l'enregistrement
+  // devient orphelin. On le ré-associe prudemment au formulaire actuel de la
+  // page : un seul orphelin, meilleur candidat non suivi avec ≥ 50 % de champs
+  // communs et sans ambiguïté. Les jeux de données sont ainsi préservés.
+  async function adoptOrphan(orphans, now) {
+    if (orphans.length !== 1) return;
+    const orphan = orphans[0];
+    const oldKeys = new Set((orphan.fields || []).map((f) => `${f.key}|${f.type}`));
+    const scored = [...registry.entries()]
+      .filter(([id]) => !tracked.has(id))
+      .map(([id, entry]) => {
+        const keys = entry.fields.map((f) => `${f.key}|${f.type}`);
+        const common = keys.filter((k) => oldKeys.has(k)).length;
+        return { id, entry, score: common / (Math.max(oldKeys.size, keys.length) || 1) };
+      })
+      .filter((c) => c.score >= 0.5)
+      .sort((a, b) => b.score - a.score);
+    if (!scored.length) return;
+    if (scored.length > 1 && scored[0].score === scored[1].score) return; // ambigu
+    const { id: newId, entry } = scored[0];
+    const oldId = orphan.id;
+    orphan.id = newId;
+    orphan.occurrence = entry.occurrence;
+    orphan.fields = FP.toPlainFields(entry.fields);
+    orphan.lastSeenAt = now;
+    await Store.deleteForm(oldId);
+    await Store.saveForm(orphan);
+    tracked.set(newId, orphan);
+    console.debug(`[formKeep] identité migrée ${oldId} → ${newId} (« ${orphan.label} »)`);
   }
 
   async function rescan() {
@@ -107,11 +170,15 @@
   // ---------- Observation du DOM (research R3) ----------
 
   let debounceTimer = null;
+  // Nos propres nœuds (chips in-page) sont exclus pour éviter les boucles de rescan.
+  const isOurs = (n) =>
+    n.nodeType === 1 && (n.dataset?.formkeep || n.closest?.("[data-formkeep]"));
   const observer = new MutationObserver((mutations) => {
     const relevant = mutations.some((m) =>
       [...m.addedNodes, ...m.removedNodes].some(
         (n) =>
           n.nodeType === 1 &&
+          !isOurs(n) &&
           (n.matches?.("form, input, select, textarea, button") ||
             n.querySelector?.("form, input, select, textarea, button"))
       )
@@ -152,13 +219,20 @@
     return values;
   }
 
-  async function capture(id) {
+  // Lecture 100 % synchrone des valeurs (avant toute navigation éventuelle),
+  // puis persistance asynchrone (research R4).
+  function capture(id) {
     const entry = registry.get(id);
-    const form = await Store.getForm(id);
-    if (!entry || !form) return;
+    if (!entry) return;
     // La structure a pu dériver depuis le tag : on relit les champs à jour.
     entry.fields = FP.extractFields(entry.element);
     const values = currentValues(entry);
+    persistCapture(id, entry, values);
+  }
+
+  async function persistCapture(id, entry, values) {
+    const form = await Store.getForm(id);
+    if (!form) return;
     const now = Date.now();
     const active = form.activeDatasetId ? form.datasets[form.activeDatasetId] : null;
     if (active) {
@@ -337,11 +411,188 @@
     if (area === "local") refreshTracked();
   });
 
-  // ---------- Démarrage ----------
+  // ---------- Chip in-page « Remplir » (US3/FR-016, décision utilisateur 2026-07-02) ----------
+  // Petit badge ancré au coin supérieur droit de chaque formulaire suivi ayant
+  // des données. Hébergé dans document.body (aucun impact sur la mise en page du
+  // site) et marqué data-formkeep pour être ignoré par le MutationObserver.
+  // Le remplissage reste déclenché par un clic utilisateur (Constitution II).
 
-  rescan().then(() => {
-    if (document.body) {
-      observer.observe(document.body, { childList: true, subtree: true });
+  const chips = new Map(); // formId → { host, btn, menu }
+  const CHIP_LABEL = "fK · Remplir";
+
+  function positionChip(host, el) {
+    const rect = el.getBoundingClientRect();
+    host.style.top = `${Math.max(0, rect.top + window.scrollY - 12)}px`;
+    host.style.left = `${rect.right + window.scrollX - 8}px`;
+  }
+
+  function closeChipMenus() {
+    for (const chip of chips.values()) {
+      if (chip.menu) {
+        chip.menu.remove();
+        chip.menu = null;
+      }
     }
+  }
+
+  function removeChip(id) {
+    const chip = chips.get(id);
+    if (chip) {
+      chip.host.remove();
+      chips.delete(id);
+    }
+  }
+
+  async function fillFromChip(id, datasetId, chip) {
+    const res = await fillForm(id, datasetId);
+    chip.btn.textContent = res.ok ? `✓ ${res.filled} champ(s)` : "⚠ échec";
+    setTimeout(() => {
+      chip.btn.textContent = CHIP_LABEL;
+    }, 1600);
+  }
+
+  async function onChipClick(id) {
+    const chip = chips.get(id);
+    const form = await Store.getForm(id);
+    if (!chip || !form) return;
+    const datasets = Object.values(form.datasets || {});
+    if (datasets.length <= 1) {
+      fillFromChip(id, form.activeDatasetId, chip);
+      return;
+    }
+    // Plusieurs jeux : petit menu de choix sous le chip
+    if (chip.menu) {
+      chip.menu.remove();
+      chip.menu = null;
+      return;
+    }
+    closeChipMenus();
+    const menu = document.createElement("div");
+    Object.assign(menu.style, {
+      position: "absolute",
+      top: "100%",
+      right: "0",
+      marginTop: "4px",
+      background: "#fff",
+      border: "1px solid #e5e7eb",
+      borderRadius: "8px",
+      boxShadow: "0 6px 20px rgba(0,0,0,.2)",
+      minWidth: "170px",
+      overflow: "hidden",
+    });
+    const sorted = datasets.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    for (const ds of sorted) {
+      const item = document.createElement("button");
+      item.type = "button";
+      item.textContent = (ds.id === form.activeDatasetId ? "● " : "") + ds.name;
+      Object.assign(item.style, {
+        all: "initial",
+        display: "block",
+        width: "100%",
+        boxSizing: "border-box",
+        fontFamily: "system-ui, 'Segoe UI', sans-serif",
+        fontSize: "12px",
+        padding: "6px 10px",
+        cursor: "pointer",
+        color: "#1f2430",
+        background: "#fff",
+      });
+      item.addEventListener("mouseenter", () => (item.style.background = "#ede9fe"));
+      item.addEventListener("mouseleave", () => (item.style.background = "#fff"));
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        menu.remove();
+        chip.menu = null;
+        fillFromChip(id, ds.id, chip);
+      });
+      menu.append(item);
+    }
+    chip.menu = menu;
+    chip.host.append(menu);
+  }
+
+  function createChip(id, entry) {
+    const host = document.createElement("div");
+    host.setAttribute("data-formkeep", "chip");
+    Object.assign(host.style, {
+      position: "absolute",
+      zIndex: "2147483646",
+      transform: "translateX(-100%)",
+    });
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = CHIP_LABEL;
+    btn.title = "formKeep : remplir ce formulaire";
+    Object.assign(btn.style, {
+      all: "initial",
+      fontFamily: "system-ui, 'Segoe UI', sans-serif",
+      fontSize: "12px",
+      fontWeight: "600",
+      color: "#fff",
+      background: "#7c3aed",
+      borderRadius: "999px",
+      padding: "3px 10px",
+      cursor: "pointer",
+      boxShadow: "0 1px 4px rgba(0,0,0,.25)",
+      userSelect: "none",
+      whiteSpace: "nowrap",
+    });
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      onChipClick(id);
+    });
+    host.append(btn);
+    document.body.append(host);
+    positionChip(host, entry.element);
+    chips.set(id, { host, btn, menu: null });
+  }
+
+  // Synchronise les chips avec l'état courant (appelé après chaque rescan
+  // et chaque changement de stockage, via refreshTracked).
+  function updateChips() {
+    if (!document.body) return;
+    for (const id of [...chips.keys()]) {
+      const entry = registry.get(id);
+      const form = tracked.get(id);
+      const hasData = form && Object.keys(form.datasets || {}).length > 0;
+      if (!entry || !entry.element.isConnected || !hasData) removeChip(id);
+    }
+    for (const [id, form] of tracked) {
+      if (Object.keys(form.datasets || {}).length === 0) continue;
+      const entry = registry.get(id);
+      if (!entry || !entry.element.isConnected) continue;
+      if (chips.has(id)) positionChip(chips.get(id).host, entry.element);
+      else createChip(id, entry);
+    }
+  }
+
+  window.addEventListener(
+    "resize",
+    () => {
+      for (const [id, chip] of chips) {
+        const entry = registry.get(id);
+        if (entry) positionChip(chip.host, entry.element);
+      }
+    },
+    { passive: true }
+  );
+
+  // Fermer les menus ouverts au clic ailleurs dans la page.
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest?.("[data-formkeep]")) closeChipMenus();
   });
+
+  // ---------- Démarrage ----------
+  // L'observer démarre même si le scan initial échoue : les formulaires
+  // injectés plus tard (SPA) doivent rester détectables quoi qu'il arrive.
+
+  rescan()
+    .catch((err) => console.warn("[formKeep] scan initial:", err))
+    .finally(() => {
+      console.debug(`[formKeep] actif — ${registry.size} formulaire(s) détecté(s) sur ${location.pathname}`);
+      if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+      }
+    });
 })();

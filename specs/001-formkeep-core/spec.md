@@ -61,6 +61,7 @@ As a developer returning to a page with a tracked form, I want the extension to 
 3. **Given** a dataset containing fields that no longer exist in the form, **When** filling occurs, **Then** matching fields are filled and unmatched entries are skipped without error
 4. **Given** a form with fields added since the dataset was saved, **When** filling occurs, **Then** the new fields are left untouched
 5. **Given** any tracked form, **When** the user requests a manual fill from the popup, **Then** the selected dataset is injected on demand regardless of the automatic behavior
+6. **Given** a tracked form with at least one dataset, **When** the page displays it, **Then** a discreet formKeep chip is anchored to the form allowing one-click fill in place (with a dataset menu when several exist); the chip appears only on tracked forms with data and never on untracked forms *(added 2026-07-02 after user feedback)*
 
 ---
 
@@ -129,6 +130,7 @@ As the owner of my data, I want to export everything (forms, tags, datasets) to 
 - **FR-013**: All data MUST be stored locally on the user's machine; no form data ever leaves the browser
 - **FR-014**: Extension MUST support standard field types: text, textarea, email, number, date, password, hidden, select (single/multiple), checkbox, radio
 - **FR-015**: When a form's structure differs from a dataset, extension MUST fill matching fields and skip unmatched ones without error
+- **FR-016**: Extension MUST display a discreet in-page fill control (chip) anchored to each tracked form having at least one dataset; the chip triggers filling only on user click and appears exclusively on user-tagged forms (the tag constitutes consent for this visual addition)
 
 ### Key Entities
 
@@ -158,4 +160,5 @@ As the owner of my data, I want to export everything (forms, tags, datasets) to 
 - Form identity is derived from a structure fingerprint (page URL + field composition), tolerant to minor DOM mutations, so IDs survive typical dev-site changes
 - Import "merge" mode resolves conflicts in favor of the imported file
 - Datasets belong to a single form; sharing datasets across forms is out of scope for v1
-- Fill is always user-initiated (single click), per user decision on 2026-07-02 — fully compliant with Constitution Principle II ("click to fill"); the extension may signal available data (badge) but never injects on page load
+- Fill is always user-initiated (single click), per user decision on 2026-07-02 — fully compliant with Constitution Principle II ("click to fill"); the extension signals available data (toolbar badge + in-page chip anchored to tracked forms) but never injects on page load
+- The in-page chip is not an "unexpected page modification" (Constitution, User Control): it appears only on forms the user explicitly tagged, and lives outside the page's layout flow

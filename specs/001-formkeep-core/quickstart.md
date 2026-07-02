@@ -47,10 +47,14 @@ maps to the spec's user stories (US) and success criteria (SC).
 
 ### V4 — One-click fill (US3, SC-001, SC-003)
 
-1. Reload `simple-form.html` (empty form); toolbar badge shows a count
-2. Open the popup, click **Fill** on the tracked form
-3. **Expected**: all fields are restored exactly (text content, selected options, checked
-   states) in ≤ 2 user actions and under 5 seconds; nothing was injected before the click
+1. Reload `simple-form.html` (empty form); toolbar badge shows a count **and a purple
+   "fK · Remplir" chip is anchored to the form's top-right corner** (FR-016)
+2. Click the in-page chip → **expected**: all fields restored exactly in 1 click; the chip
+   briefly shows "✓ N champ(s)"
+3. Empty the form (reload), open the popup, click **Remplir** → same exact restore (text
+   content, selected options, checked states); nothing was injected before either click
+4. With 2+ datasets on the form, click the chip → **expected**: a small menu lists the
+   datasets (active one marked ●); choosing one fills with it
 
 ### V5 — Structure drift (US3 scenarios 3–4, FR-015)
 

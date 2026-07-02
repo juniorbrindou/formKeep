@@ -88,16 +88,21 @@ technology decisions and the alternatives considered for each risky/ambiguous ar
 - **Alternatives considered**: `chrome.downloads` API (rejected: extra permission for no gain);
   clipboard-based export (rejected: fragile for large data).
 
-## R9. Badge signalling
+## R9. Fill signalling & triggers — badge + in-page chip *(amended 2026-07-02)*
 
-- **Decision**: Content script sends the count of tracked forms with available data on the
-  current page; service worker sets `chrome.action` badge text/color per tab. Empty badge when
-  count is 0.
-- **Rationale**: Satisfies US3 "extension signals that saved data is available" while remaining
-  strictly non-intrusive — no page DOM modification, no injection (Constitution II).
-- **Alternatives considered**: In-page floating button (rejected: modifies page appearance,
-  against "never modify page content unexpectedly"); no signal (rejected: user cannot know data
-  exists without opening the popup).
+- **Decision**: Two complementary surfaces. (1) Toolbar badge: content script sends the count
+  of tracked forms with available data; service worker sets `chrome.action` badge per tab.
+  (2) In-page chip: a discreet permanent "fK · Remplir" badge anchored to the top-right corner
+  of each **tracked form with data**, hosted in `document.body` (outside the page's layout
+  flow, `data-formkeep` marked, excluded from MutationObserver rescans). Click fills with the
+  active dataset; a small menu offers the choice when several datasets exist.
+- **Rationale**: The badge alone forced a popup round-trip for every fill — too slow for
+  daily use (user feedback, 2026-07-02). The chip keeps fill user-initiated (Constitution II)
+  and only ever appears on forms the user explicitly tagged, so it is not an "unexpected"
+  page modification (tag = consent).
+- **Alternatives considered**: Badge-only with popup fill (initial decision — rejected after
+  real usage: too many clicks); hover-only chip (rejected: less discoverable); collapsed
+  mini-icon (rejected: one extra click per fill).
 
 ## R10. Permissions (manifest)
 
