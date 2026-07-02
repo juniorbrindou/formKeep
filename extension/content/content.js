@@ -88,7 +88,13 @@
 
   async function refreshTracked() {
     tracked.clear();
-    const all = await Store.getAllForms();
+    let all;
+    try {
+      all = await Store.getAllForms();
+    } catch {
+      // Extension rechargée : le contexte n'existe plus, sans conséquence.
+      return;
+    }
     const now = Date.now();
     const orphans = [];
     for (const form of all) {

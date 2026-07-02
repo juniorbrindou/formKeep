@@ -54,6 +54,5 @@ Scénarios de validation manuelle (V1–V9) et pages de test : voir
 
 ## Documentation projet
 
-- Constitution : [.specify/memory/constitution.md](.specify/memory/constitution.md)
 - Spécification : [specs/001-formkeep-core/spec.md](specs/001-formkeep-core/spec.md)
 - Plan & design : [specs/001-formkeep-core/plan.md](specs/001-formkeep-core/plan.md)
